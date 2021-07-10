@@ -947,3 +947,6 @@ Rellenamos los datos del usuario, indicando en "Choose an authentication method"
 
 ![](imagenes/Screenshot_2021-07-10 Dashboard3.png)
 
+### Generando imágenes
+
+

@@ -81,9 +81,8 @@ $config = [
 			CONCAT("urn:mace:terena.org:schac:userStatus:es:uca.es:", asignaturas.cod, ":2021-22:student:active") as schacUserStatus
                         FROM uca.alumnos, uca.asignaturas, uca.matriculados
 			WHERE matriculados.id_alumno = alumnos.id
-			      AND matriculados.id_asignatura = asignaturas.id 
 		              AND alumnos.cod=:username   
-			      AND AES_DECRYPT(password,"my_key")=:password',
+			      AND password=:password',
     ],
 
     /*

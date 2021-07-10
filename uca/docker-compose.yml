@@ -39,7 +39,7 @@ services:
         - mynet
 
   simplesamlphp_uca:
-    image: almuhs/simplesamlphp_preconf:v1
+    image: almuhs/simplesamlphp_uca:v1
     ports: 
       - '8083:80'
       - '8446:443'

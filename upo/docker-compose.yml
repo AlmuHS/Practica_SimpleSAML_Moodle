@@ -37,7 +37,7 @@ services:
       - mynet
 
   simplesamlphp_upo:
-    image: almuhs/simplesamlphp_preconf:v1
+    image: almuhs/simplesamlphp_upo:v1
     ports: 
       - '8081:80'
       - '8444:443'

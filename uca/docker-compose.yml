@@ -1,7 +1,7 @@
 version: '2'
 services:    
   mariadb_uca:
-    image: almuhs/mariadb_uca:v1
+    image: almuhs/mariadb_uca:v2
     ports:
         - '3307'
     environment:

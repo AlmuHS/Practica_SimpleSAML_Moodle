@@ -1,7 +1,7 @@
 version: '2'
 services:
   mariadb_upo:
-    image: almuhs/mariadb_upo:v1
+    image: almuhs/mariadb_upo:v2
     environment:
       - MARIADB_ROOT_PASSWORD=rootpass
       - MARIADB_USER=bn_moodle

@@ -1,61 +1,32 @@
-version: '2'
+version: '3.3'
 services:
   mariadb_upo:
     image: almuhs/mariadb_upo:v2
-    environment:
-      - MARIADB_ROOT_PASSWORD=rootpass
-      - MARIADB_USER=bn_moodle
-      - MARIADB_PASSWORD=pass
-      - MARIADB_DATABASE=bitnami_moodle
-      - MARIADB_CHARACTER_SET=utf8mb4
-      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    container_name: mariadb_upo
     volumes:
-      - 'mariadb_data_upo:/bitnami/mariadb'
+      - 'mariadb_data_upo2:/var/lib/mysql'
     networks:
       - mynet
-  moodle_upo:
-    image: docker.io/bitnami/moodle:3
     ports:
-      - '8080:8080'
-      - '8443:8443'
+      - '3306:3306'
+      
+  simplesamlphp_moodle_upo:
+    container_name: simplesamlphp_moodle_upo
+    image: almuhs/simplesamlphp_moodle_upo:v1
     environment:
-      - MOODLE_DATABASE_HOST=mariadb_upo
-      - MOODLE_DATABASE_PORT_NUMBER=3306
-      - MOODLE_DATABASE_USER=bn_moodle
-      - MOODLE_DATABASE_NAME=bitnami_moodle
-      - MOODLE_DATABASE_PASSWORD=pass
-      - MOODLE_USERNAME='admin'
-      - MOODLE_PASSWORD='admin'
-    volumes:
-      - 'moodle_data_upo:/bitnami/moodle'
-      - 'moodledata_data_upo:/bitnami/moodledata'
-      - 'simplesamlphp_data_upo:/var/simplesamlphp'
-    depends_on:
-      - mariadb_upo
-      - simplesamlphp_upo
-    networks:
-      - mynet
-
-  simplesamlphp_upo:
-    image: almuhs/simplesamlphp_upo:v1
+        - MARIADB_HOST=mariadb_upo
     ports: 
       - '8081:80'
       - '8444:443'
-    environment:
-       - MOODLE_DATABASE_HOST=mariadb_upo
-       - MOODLE_DATABASE_PORT_NUMBER=3306
-       - MOODLE_DATABASE_USER=bn_moodle
-       - MOODLE_DATABASE_NAME=bitnami_moodle
-       - MOODLE_DATABASE_PASSWORD=pass
-       - MOODLE_USERNAME='admin'
-       - MOODLE_PASSWORD='admin'
     volumes:
         - 'simplesamlphp_data_upo:/var/simplesamlphp'
     networks:
         - mynet
+    depends_on:
+        - mariadb_upo
         
 volumes:
-  mariadb_data_upo:
+  mariadb_data_upo2:
     driver: local
   moodle_data_upo:
     driver: local

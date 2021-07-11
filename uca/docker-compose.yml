@@ -1,50 +1,24 @@
-version: '2'
+version: '3.3'
 services:    
   mariadb_uca:
-    image: almuhs/mariadb_uca:v2
-    ports:
-        - '3307'
-    environment:
-      - MARIADB_ROOT_PASSWORD=rootpass
-      - MARIADB_USER=bn_moodle
-      - MARIADB_PASSWORD=pass
-      - MARIADB_DATABASE=bitnami_moodle
-      - MARIADB_CHARACTER_SET=utf8mb4
-      - MARIADB_COLLATE=utf8mb4_unicode_ci
+    image: mariadb_uca
+    container_name: mariadb_uca
     volumes:
-      - 'mariadb_data_uca:/bitnami/mariadb'
+      - 'mariadb_data_uca:/var/lib/mysql'
     networks:
         - mynet
-  moodle_uca:
-    image: docker.io/bitnami/moodle:3
-    ports:
-      - '8082:8080'
-      - '8445:8443'
-    environment:
-      - MOODLE_DATABASE_HOST=mariadb_uca
-      - MOODLE_DATABASE_PORT_NUMBER=3307
-      - MOODLE_DATABASE_USER=bn_moodle
-      - MOODLE_DATABASE_NAME=bitnami_moodle
-      - MOODLE_DATABASE_PASSWORD=pass
-      - MOODLE_USERNAME='admin'
-      - MOODLE_PASSWORD='admin'
-    volumes:
-      - 'moodle_data_uca:/bitnami/moodle'
-      - 'moodledata_data_uca:/bitnami/moodledata'
-      - 'simplesamlphp_data_uca:/var/simplesamlphp'
-    depends_on:
-      - mariadb_uca
-      - simplesamlphp_uca
-    networks:
-        - mynet
-
-  simplesamlphp_uca:
-    image: almuhs/simplesamlphp_uca:v1
+  simplesamlphp_moodle_uca:
+    image: simplesamlphp_moodle_uca
+    container_name: simplesamlphp_moodle_uca
     ports: 
       - '8083:80'
       - '8446:443'
     volumes:
+        - 'moodle_data_uca:/var/www/html/moodle'
+        - 'moodledata_data_uca:/var/www/moodledata'
         - 'simplesamlphp_data_uca:/var/simplesamlphp'
+    depends_on:
+      - mariadb_uca
     networks:
         - mynet
 volumes:

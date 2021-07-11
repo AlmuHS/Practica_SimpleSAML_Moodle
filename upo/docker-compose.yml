@@ -4,7 +4,7 @@ services:
     image: almuhs/mariadb_upo:v2
     container_name: mariadb_upo
     volumes:
-      - 'mariadb_data_upo2:/var/lib/mysql'
+      - 'mariadb_data_upo:/var/lib/mysql'
     networks:
       - mynet
     ports:
@@ -20,13 +20,15 @@ services:
       - '8444:443'
     volumes:
         - 'simplesamlphp_data_upo:/var/simplesamlphp'
+        - 'moodle_data_upo:/var/www/html/moodle'
+        - 'moodledata_data_upo:/var/www/moodledata'
     networks:
         - mynet
     depends_on:
         - mariadb_upo
         
 volumes:
-  mariadb_data_upo2:
+  mariadb_data_upo:
     driver: local
   moodle_data_upo:
     driver: local

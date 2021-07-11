@@ -947,6 +947,29 @@ Rellenamos los datos del usuario, indicando en "Choose an authentication method"
 
 ![](imagenes/Screenshot_2021-07-10 Dashboard3.png)
 
-### Generando imágenes
+#### Matriculando a los usuarios en asignaturas
 
+Por cada asignatura, pulsamos en "Participants" y añadimos a los usuarios que hemos registrado
+
+![](imagenes/Screenshot_2021-07-11 MP-II Participants.png)
+
+![](imagenes/Screenshot_2021-07-11 MD-II Participants.png)
+
+![](imagenes/Screenshot_2021-07-11 ID Participants.png)
+
+Repetimos el proceso en la otra universidad
+
+### Generando imágenes de la infraestructura
+
+Generamos imágenes con el estado de la infraestructura hasta el momento:
+
+- Base de datos UPO: [almuhs/mariadb_upo:v2](https://hub.docker.com/repository/docker/almuhs/mariadb_upo)
+- Base de datos UCA: [almuhs/mariadb_uca:v2](https://hub.docker.com/repository/docker/almuhs/mariadb_uca)
+- SimpleSAML UPO: [almuhs/simplesamlphp_upo:v1](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_upo)
+- SimpleSAML UCA: [almuhs/simplesamlphp_uca:v1](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_uca)
+
+- Imagen mixta SimpleSAML+Moodle UPO: [almuhs/simplesamlphp_moodle_upo](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_moodle_upo)
+	+ Clave Admin: adminMoodle123+
+
+Actualizamos los ficheros Docker Compose para generar los contenedores desde estas imágenes
 

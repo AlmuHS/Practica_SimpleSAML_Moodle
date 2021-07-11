@@ -6,10 +6,7 @@ services:
     volumes:
       - 'mariadb_data_upo:/var/lib/mysql'
     networks:
-      - mynet
-    ports:
-      - '3306:3306'
-      
+      - mynet      
   simplesamlphp_moodle_upo:
     container_name: simplesamlphp_moodle_upo
     image: almuhs/simplesamlphp_moodle_upo:v1

@@ -1,14 +1,14 @@
 version: '3.3'
 services:    
   mariadb_uca:
-    image: mariadb_uca
+    image: almuhs/mariadb_uca:v3
     container_name: mariadb_uca
     volumes:
-      - 'mariadb_data_uca:/var/lib/mysql'
+      - 'mariadb_data_uca2:/var/lib/mysql'
     networks:
         - mynet
   simplesamlphp_moodle_uca:
-    image: simplesamlphp_moodle_uca
+    image: almuhs/simplesamlphp_moodle_uca:v1
     container_name: simplesamlphp_moodle_uca
     ports: 
       - '8083:80'
@@ -22,7 +22,7 @@ services:
     networks:
         - mynet
 volumes:
-  mariadb_data_uca:
+  mariadb_data_uca2:
     driver: local
   moodle_data_uca:
     driver: local

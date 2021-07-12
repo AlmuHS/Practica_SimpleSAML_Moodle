@@ -1,1 +1,0 @@
-{"samllib":"\/var\/simplesamlphp\/lib"}

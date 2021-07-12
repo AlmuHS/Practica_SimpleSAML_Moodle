@@ -964,12 +964,13 @@ Repetimos el proceso en la otra universidad
 Generamos imágenes con el estado de la infraestructura hasta el momento:
 
 - Base de datos UPO: [almuhs/mariadb_upo:v2](https://hub.docker.com/repository/docker/almuhs/mariadb_upo)
-- Base de datos UCA: [almuhs/mariadb_uca:v2](https://hub.docker.com/repository/docker/almuhs/mariadb_uca)
+- Base de datos UCA: [almuhs/mariadb_uca:v3](https://hub.docker.com/repository/docker/almuhs/mariadb_uca)
 - SimpleSAML UPO: [almuhs/simplesamlphp_upo:v1](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_upo)
 - SimpleSAML UCA: [almuhs/simplesamlphp_uca:v1](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_uca)
 
 - Imagen mixta SimpleSAML+Moodle UPO: [almuhs/simplesamlphp_moodle_upo](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_moodle_upo)
 	+ Clave Admin: adminMoodle123+
+- Imagen mixta SimpleSAML+Moodle UCA: [almuhs/simplesamlphp_moodle_uca](https://hub.docker.com/repository/docker/almuhs/simplesamlphp_moodle_uca)
 
 Actualizamos los ficheros Docker Compose para generar los contenedores desde estas imágenes
 

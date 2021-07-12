@@ -368,15 +368,9 @@ Si todo ha ido bien, veremos algo como esto
 
 Para probar la infraestructura, entramos a las URL de los diferentes servicios web
 
-- Moodle UPO: 
-	- http://localhost:8080/
-	- https://localhost:8443/
 - SimpleSAML UPO
 	+ http://localhost:8081/simplesaml
 	+ https://localhost:8444/simplesaml
-- Moodle UCA
-	+ http://localhost:8082/
-	+ https://localhost:8445/
 - SimpleSAML UCA
 	+ http://localhost:8083/simplesaml/
 	+ https://localhost:8446/simplesaml/

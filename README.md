@@ -356,13 +356,13 @@ Si todo ha ido bien, veremos algo como esto
 	Creating volume "upo_simplesamlphp_data_upo" with local driver
 	Creating upo_simplesamlphp_upo_1 ... done
 	Creating upo_mariadb_upo_1       ... done
-	almu@debian:~/Practicas_IN/Practica2/upo$ sudo docker ps
-	CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS          PORTS                                            NAMES
-	8d6d59df8197   unicon/simplesamlphp:latest   "httpd-foreground"       5 seconds ago    Up 3 seconds    0.0.0.0:8081->80/tcp, 0.0.0.0:8444->443/tcp      upo_simplesamlphp_upo_1
-	68db04909b52   almuhs/mariadb_upo:v1         "/opt/bitnami/script…"   5 seconds ago    Up 4 seconds    3306/tcp                                         upo_mariadb_upo_1
-	fa6e241ed4af   almuhs/mariadb_uca:v1         "/opt/bitnami/script…"   32 seconds ago   Up 31 seconds   3306/tcp, 0.0.0.0:49155->3307/tcp                uca_mariadb_uca_1
-	f1651014342e   unicon/simplesamlphp:latest   "httpd-foreground"       32 seconds ago   Up 31 seconds   0.0.0.0:8083->80/tcp, 0.0.0.0:8446->443/tcp      uca_simplesamlphp_uca_1
-	almu@debian:~/Practicas_IN/Practica2/upo$ 
+	almu@debian:~/Practicas_IN/Practica2$ sudo docker ps
+	CONTAINER ID   IMAGE                                COMMAND                  CREATED          STATUS          PORTS                                         NAMES
+	4eeaac0cbe4a   almuhs/simplesamlphp_moodle_upo:v1   "httpd-foreground"       23 minutes ago   Up 23 minutes   0.0.0.0:8081->80/tcp, 0.0.0.0:8444->443/tcp   simplesamlphp_moodle_upo
+	e35ac53cb1ae   almuhs/mariadb_upo:v2                "docker-entrypoint.s…"   23 minutes ago   Up 23 minutes   3306/tcp                                      mariadb_upo
+	b2e41bfb5a79   simplesamlphp_moodle_uca             "httpd-foreground"       6 hours ago      Up 6 hours      0.0.0.0:8083->80/tcp, 0.0.0.0:8446->443/tcp   simplesamlphp_moodle_uca
+	d0d77a4dd8c1   almuhs/mariadb_uca:v3                "docker-entrypoint.s…"   6 hours ago      Up 6 hours      3306/tcp                                      mariadb_uca
+
 
 #### Probando la infraestructura
 
@@ -1029,10 +1029,9 @@ Introducimos las credenciales de nuestro usuario, e iniciamos sesión en SimpleS
 
 Volvemos a Moodle para continuar el inicio de sesión. Esta vez. Moodle nos da un error de que no tiene la usuario registrado en sus cursos.
 
-
 ### Generando imágenes de la infraestructura
 
-Generamos imágenes con el estado de la infraestructura hasta el momento. Tras varios errores, hemos juntado las instalaciones de Moodle y de SimpleSAMLPHP en un único contenedor, instalando Moodle (descargado de la página oficial en su versión [3.1+](Moodle 3.11+)) sobre la imagen de SimpleSAML.
+Generamos imágenes con el estado de la infraestructura hasta el momento. 
 
 - Base de datos UPO: [almuhs/mariadb_upo:v2](https://hub.docker.com/repository/docker/almuhs/mariadb_upo)
 - Base de datos UCA: [almuhs/mariadb_uca:v3](https://hub.docker.com/repository/docker/almuhs/mariadb_uca)

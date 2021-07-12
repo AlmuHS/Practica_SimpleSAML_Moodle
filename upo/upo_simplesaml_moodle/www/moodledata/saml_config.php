@@ -1,1 +1,1 @@
-{"samllib":"\/var\/simplesamlphp\/lib"}
+{"samllib":"\/var\/simplesamlphp\/lib","sp_source":"default-sp","dosinglelogout":"on"}

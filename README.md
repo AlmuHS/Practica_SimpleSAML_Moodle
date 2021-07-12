@@ -959,6 +959,29 @@ Por cada asignatura, pulsamos en "Participants" y añadimos a los usuarios que h
 
 Repetimos el proceso en la otra universidad
 
+### Iniciando sesión en Moodle con SAML
+
+Tras instalar los plugin de saml_auth y enrol_saml, probamos a intentar iniciar sesión desde SAML
+
+![](imagenes/Captura de pantalla de 2021-07-12 02-06-48.png)
+
+Aquí pulsamos el botón de SAML Login. 
+
+![](imagenes/Captura de pantalla de 2021-07-12 18-50-42.png)
+
+Se nos dirige a la página de SimpleSAMLPHP, a la pantalla de `default-sp`. Seleccionamos el IDP de la universidad con que queremos autenticarnos. En nuestro caso, el de la UPO
+
+![](imagenes/Captura de pantalla de 2021-07-12 18-52-30.png)
+
+Introducimos las credenciales de nuestro usuario, e iniciamos sesión en SimpleSAML.
+
+#### Error al iniciar sesión
+
+![](imagenes/Captura de pantalla de 2021-07-12 18-52-42.png)
+
+Volvemos a Moodle para continuar el inicio de sesión. Esta vez. Moodle nos da un error de que no tiene la usuario registrado en sus cursos.
+
+
 ### Generando imágenes de la infraestructura
 
 Generamos imágenes con el estado de la infraestructura hasta el momento. Tras varios errores, hemos juntado las instalaciones de Moodle y de SimpleSAMLPHP en un único contenedor, instalando Moodle (descargado de la página oficial en su versión [3.1+](Moodle 3.11+)) sobre la imagen de SimpleSAML.
@@ -974,32 +997,8 @@ Generamos imágenes con el estado de la infraestructura hasta el momento. Tras v
 
 Actualizamos los ficheros Docker Compose para generar los contenedores desde estas imágenes
 
-### Problemas encontrados
 
-Tras instalar los plugin de saml_auth y enrol_saml, al intentar iniciar sesión con SAML, la página se queda en blanco.
 
-![](imagenes/Captura de pantalla de 2021-07-12 02-06-48.png)
 
-Aquí pulsamos el botón de SAML Login. 
 
-![](imagenes/Captura de pantalla de 2021-07-12 02-06-58.png)
 
-Vemos que la página no carga
-
-Revisando el log, encontramos este error
-
-	[root@ee25b6fec97a httpd]# more ssl_error_log 
-	[Sun Jul 11 23:57:00.913867 2021] [ssl:warn] [pid 1] AH01909: RSA certificate configured for 172.25.58.3:443 does NOT include an ID which matches the server name
-	[Sun Jul 11 23:57:00.939205 2021] [ssl:warn] [pid 1] AH01909: RSA certificate configured for 172.25.58.3:443 does NOT include an ID which matches the server name
-	[Mon Jul 12 00:06:54.070025 2021] [php7:notice] [pid 14] [client 172.25.58.1:57864] PHP Notice:  Undefined property: stdClass::$sp_source in /var/www/html/moodle/auth/saml/index.php on line 61, referer: https://
-	localhost:8446/moodle/auth/saml/login.php
-	[Mon Jul 12 00:06:54.079971 2021] [php7:warn] [pid 14] [client 172.25.58.1:57864] PHP Warning:  session_create_id(): Failed to create new ID in /var/simplesamlphp/lib/SimpleSAML/SessionHandlerPHP.php on line 173
-	, referer: https://localhost:8446/moodle/auth/saml/login.php
-	[Mon Jul 12 00:06:54.091736 2021] [php7:error] [pid 14] [client 172.25.58.1:57864] PHP Fatal error:  Uncaught TypeError: Argument 1 passed to SimpleSAML\\Error\\AuthSource::__construct() must be of the type stri
-	ng, null given, called in /var/simplesamlphp/lib/SimpleSAML/Auth/Simple.php on line 70 and defined in /var/simplesamlphp/lib/SimpleSAML/Error/AuthSource.php:39\nStack trace:\n#0 /var/simplesamlphp/lib/SimpleSAML
-	/Auth/Simple.php(70): SimpleSAML\\Error\\AuthSource->__construct(NULL, 'Unknown authent...')\n#1 /var/simplesamlphp/lib/SimpleSAML/Auth/Simple.php(168): SimpleSAML\\Auth\\Simple->getAuthSource()\n#2 /var/simples
-	amlphp/lib/SimpleSAML/Auth/Simple.php(111): SimpleSAML\\Auth\\Simple->login(Array)\n#3 /var/www/html/moodle/auth/saml/index.php(83): SimpleSAML\\Auth\\Simple->requireAuth()\n#4 {main}\n  thrown in /var/simplesam
-	lphp/lib/SimpleSAML/Error/AuthSource.php on line 39, referer: https://localhost:8446/moodle/auth/saml/login.php
-	[root@ee25b6fec97a httpd]# 
-
-Tras muchos intentos, no logramos encontrar la causa del mismo

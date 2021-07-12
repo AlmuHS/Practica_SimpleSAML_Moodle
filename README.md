@@ -236,7 +236,7 @@ Hecho esto, compilamos la imagen y la subimos a Docker Hub
 
 Tanto SimpleSAML como Moodle requieren de una base de datos para funcionar. Para ahorrar contenedores, utilizaremos el mismo contenedor para ambos.
 
-Para crear la base de datos, nos basaremos en la imagen bitnami/mariadb. Sobre esta imagen, crearemos dos imágenes personalizadas, en las que cargaremos la base de datos de cada universidad. Mas adelante, cuando se despliegue el contenedor, se añadirán los datos de la base de datos de Moodle: una nueva base de datos y un nuevo usuario.
+Para crear la base de datos, nos basaremos en la imagen oficial de MariaDB. Sobre esta imagen, crearemos dos imágenes personalizadas, en las que cargaremos la base de datos de cada universidad. Cada imagen también creará una base de datos para Moodle, que se utilizará para almacenar los datos de cada instancia del mismo.
 
 ##### Creando las imágenes personalizadas
 
@@ -244,39 +244,27 @@ Para cargar los esquemas de cada universidad, crearemos un directorio sql/ en el
 
 	ADD sql/ /docker-entrypoint-initdb.d
 
-Sobre esto, crearemos dos imágenes: `mariadb_upo`, con el esquema de bases de datos de la UPO; y `mariadb_uca`, con el esquema de bases de datos de la UCA.
+Sobre esto, crearemos dos imágenes: `mariadb_upo`, con el esquema de bases de datos de la UPO; y `mariadb_uca`, con el esquema de bases de datos de la UCA. 
 
-En el caso de `mariadb_uca` también cambiaremos el puerto de MySQL al 3307. Esto permitirá arrancar ambos contenedores de bases de datos sobre la misma red, sin producir solapamiento.
+Para evitar problemas, y dado que no necesitamos acceder a las bases de datos desde el exterior, no expondremos los puertos. Aprovechamos el Dockerfile para crear la base de datos y el usuario para Moodle.
 
-El Dockerfile de `mariadb_upo` queda así:
+El Dockerfile queda así:
 
-	FROM bitnami/mariadb
+	FROM mariadb:latest
 	
-	## Modify the ports used by MariaDB by default
-	# It is also possible to change these environment variables at runtime
+	ENV MARIADB_USER=moodleusr
+	ENV MARIADB_PASSWORD=pass
+	ENV MARIADB_DATABASE=moodle
+	ENV MARIADB_ROOT_PASSWORD=rootpass
+	
 	# Copy the SQL script from /sql to Docker's entrypoint
 	ADD sql/ /docker-entrypoint-initdb.d
 	
-	ENV MARIADB_PORT_NUMBER=3306
-	EXPOSE 3306
-
-El Docker de `mariadb_uca` queda así:
-
-	FROM bitnami/mariadb
-	
-	## Modify the ports used by MariaDB by default
-	# It is also possible to change these environment variables at runtime
-	# Copy the SQL script from /sql to Docker's entrypoint
-	ADD sql/ /docker-entrypoint-initdb.d
-	
-	ENV MARIADB_PORT_NUMBER=3307
-	EXPOSE 3307
-
-Además, en los scripts de la base de datos añadiremos las instrucciones para crear la nueva base de datos y el usuario asociados a las mismas.
+Además, en los scripts de la base de datos añadiremos las instrucciones para crear la base de datos de la universidad y el usuario asociados a las mismas.
 
 ##### Creando el script con el esquema de la base de datos
 
-En el script donde se carga el esquema de la base de datos, añadimos varias instrucciones para crear la base de datos en sí y un nuevo usuario con total permiso sobre las mismas. Esto evitará el tener que crear la base de datos durante el despliegue, pudiendo utilizar el despliegue para crear una segunda base de datos, con los datos de moodle.
+En el script donde se carga el esquema de la base de datos, añadimos varias instrucciones para crear la base de datos en sí y un nuevo usuario con total permiso sobre las mismas. 
 
 En `uca.sql`
 
@@ -322,26 +310,18 @@ Finalmente, desplegamos la infraestructura con todos los contenedores
 
 Nos creamos un fichero Docker Compose por cada universidad. Este fichero desplegará la siguiente infraestructura:
 
-- Instancia de MariaDB, basada en la imagen personalizada de dicha universidad, en la que se creará una nueva base de datos y usuario para Moodle
-- Instancia de Moodle, conectada a la instancia de MariaDB
-	+ Con una conexión al volumen de datos de SimpleSAML
-- Instancia de SimpleSAML
+- Instancia de MariaDB, basada en la imagen personalizada de dicha universidad
+- Instancia de SimpleSAML (+ Moodle)
 - Volumen de MariaDB
 - 2 volúmenes para los datos de Moodle
 - Volumen de SimpleSAML
 
 Para los servicios web de SImpleSAML y Moodle, realizaremos un redireccionamiento de puertos, para evitar el solapamiento de los mismos:
 
-- Moodle UPO:
-	+ 8080 -> 8080
-	+ 8443 -> 8443
-- SimpleSAML UPO
+- SimpleSAML (+ Moodle) UPO
 	+ 8081 -> 80
 	+ 8444 -> 443
-- Moodle UCA
-	+ 8082 -> 8080
-	+ 8445 -> 8443
-- SimpleSAML UCA
+- SimpleSAML (+ Moodle) UCA
 	+ 8083 -> 80
 	+ 8446 -> 443
 
@@ -372,76 +352,17 @@ Si todo ha ido bien, veremos algo como esto
 	almu@debian:~/Practicas_IN/Practica2/upo$ sudo docker-compose up -d
 	Creating network "upo_default" with the default driver
 	Creating volume "upo_mariadb_data_upo" with local driver
-	Creating volume "upo_moodle_data_upo" with local driver
 	Creating volume "upo_moodledata_data_upo" with local driver
 	Creating volume "upo_simplesamlphp_data_upo" with local driver
 	Creating upo_simplesamlphp_upo_1 ... done
 	Creating upo_mariadb_upo_1       ... done
-	Creating upo_moodle_upo_1        ... done
 	almu@debian:~/Practicas_IN/Practica2/upo$ sudo docker ps
 	CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS          PORTS                                            NAMES
-	c48a7aa12235   bitnami/moodle:3              "/opt/bitnami/script…"   4 seconds ago    Up 3 seconds    0.0.0.0:8080->8080/tcp, 0.0.0.0:8443->8443/tcp   upo_moodle_upo_1
 	8d6d59df8197   unicon/simplesamlphp:latest   "httpd-foreground"       5 seconds ago    Up 3 seconds    0.0.0.0:8081->80/tcp, 0.0.0.0:8444->443/tcp      upo_simplesamlphp_upo_1
 	68db04909b52   almuhs/mariadb_upo:v1         "/opt/bitnami/script…"   5 seconds ago    Up 4 seconds    3306/tcp                                         upo_mariadb_upo_1
-	422b67be0148   bitnami/moodle:3              "/opt/bitnami/script…"   31 seconds ago   Up 30 seconds   0.0.0.0:8082->8080/tcp, 0.0.0.0:8445->8443/tcp   uca_moodle_uca_1
 	fa6e241ed4af   almuhs/mariadb_uca:v1         "/opt/bitnami/script…"   32 seconds ago   Up 31 seconds   3306/tcp, 0.0.0.0:49155->3307/tcp                uca_mariadb_uca_1
 	f1651014342e   unicon/simplesamlphp:latest   "httpd-foreground"       32 seconds ago   Up 31 seconds   0.0.0.0:8083->80/tcp, 0.0.0.0:8446->443/tcp      uca_simplesamlphp_uca_1
 	almu@debian:~/Practicas_IN/Practica2/upo$ 
-
-Los contenedores de Moodle tardarán varios minutos en desplegarse. Podemos ver el progreso del arranque con `docker logs`
-
-	sudo docker logs upo_moodle_upo_1
-	sudo docker logs uca_moodle_uca_1
-
-Cuando termine el despliegue, veremos algo como esto
-
-	almu@debian:~/Practicas_IN/Practica2/upo$ sudo docker logs uca_moodle_uca_1
-	moodle 14:38:06.23 
-	moodle 14:38:06.23 Welcome to the Bitnami moodle container
-	moodle 14:38:06.23 Subscribe to project updates by watching https://github.com/bitnami/bitnami-docker-moodle
-	moodle 14:38:06.23 Submit issues and feature requests at https://github.com/bitnami/bitnami-docker-moodle/issues
-	moodle 14:38:06.23 
-	moodle 14:38:06.23 INFO  ==> ** Starting Moodle setup **
-	moodle 14:38:06.29 INFO  ==> Configuring PHP options
-	moodle 14:38:06.31 INFO  ==> Validating settings in MYSQL_CLIENT_* env vars
-	moodle 14:38:06.41 INFO  ==> Ensuring Moodle directories exist
-	moodle 14:38:06.43 INFO  ==> Trying to connect to the database server
-	moodle 14:38:21.48 INFO  ==> Running Moodle install script
-	moodle 14:41:52.87 INFO  ==> Persisting Moodle installation
-	moodle 14:41:58.29 INFO  ==> ** Moodle setup finished! **
-	
-	moodle 14:41:58.30 INFO  ==> ** Starting cron **
-	moodle 14:41:58.33 INFO  ==> ** Starting Apache **
-	[Fri Jul 09 14:41:58.400649 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:41:58.401247 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:41:58.448053 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:41:58.448590 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:41:58.466070 2021] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.48 (Unix) OpenSSL/1.1.1d PHP/7.3.29 configured -- resuming normal operations
-	[Fri Jul 09 14:41:58.466110 2021] [core:notice] [pid 1] AH00094: Command line: '/opt/bitnami/apache/bin/httpd -f /opt/bitnami/apache/conf/httpd.conf -D FOREGROUND'
-	
-	almu@debian:~/Practicas_IN/Practica2/upo$ sudo docker logs upo_moodle_upo_1
-	moodle 14:38:33.66 
-	moodle 14:38:33.66 Welcome to the Bitnami moodle container
-	moodle 14:38:33.66 Subscribe to project updates by watching https://github.com/bitnami/bitnami-docker-moodle
-	moodle 14:38:33.66 Submit issues and feature requests at https://github.com/bitnami/bitnami-docker-moodle/issues
-	moodle 14:38:33.66 
-	moodle 14:38:33.66 INFO  ==> ** Starting Moodle setup **
-	moodle 14:38:33.73 INFO  ==> Configuring PHP options
-	moodle 14:38:33.75 INFO  ==> Validating settings in MYSQL_CLIENT_* env vars
-	moodle 14:38:33.85 INFO  ==> Ensuring Moodle directories exist
-	moodle 14:38:33.87 INFO  ==> Trying to connect to the database server
-	moodle 14:38:48.91 INFO  ==> Running Moodle install script
-	moodle 14:42:19.75 INFO  ==> Persisting Moodle installation
-	moodle 14:42:25.09 INFO  ==> ** Moodle setup finished! **
-	
-	moodle 14:42:25.10 INFO  ==> ** Starting cron **
-	moodle 14:42:25.12 INFO  ==> ** Starting Apache **
-	[Fri Jul 09 14:42:25.175024 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:42:25.175465 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:42:25.207388 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:42:25.207840 2021] [ssl:warn] [pid 1] AH01909: www.example.com:8443:0 server certificate does NOT include an ID which matches the server name
-	[Fri Jul 09 14:42:25.225081 2021] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.48 (Unix) OpenSSL/1.1.1d PHP/7.3.29 configured -- resuming normal operations
-	[Fri Jul 09 14:42:25.225114 2021] [core:notice] [pid 1] AH00094: Command line: '/opt/bitnami/apache/bin/httpd -f /opt/bitnami/apache/conf/httpd.conf -D FOREGROUND'
 
 #### Probando la infraestructura
 
@@ -722,11 +643,138 @@ Los Metadatos SP SAML 2.0 los copiamos en el fichero `metadata/saml20-sp-remote.
 
 Esta vez, cuando pulsamos en "default-sp", se nos ofrecen los IDP de ambas universidades. Si seleccionamos el IDP de la otra universidad, SimpleSAML nos redirigirá a su plataforma.
 
+### Instalando Moodle
+
+Para instalar Moodle, entramos al contenedor de SimpleSAMLPHP y nos situamos en `/var/www`
+Creamos un directorio llamado `moodledata`
+
+	almu@debian:~/Practicas_IN/Practica2$ sudo docker exec -it simplesamlphp_moodle_upo bash
+	[root@f0a611e01fd2 /]# cd /var/www
+	[root@f0a611e01fd2 www]# mkdir moodledata
+	[root@f0a611e01fd2 www]# 
+
+#### Instalando dependencias
+
+La instalación de Moodle requiere de varias dependencias, que no vienen instaladas por defecto en la imagen de SImpleSAML
+
+Las instalamos con este comando
+
+	yum install -y  php-zip php-gd php-intl php-xmlrpc php-soap
+
+Y reiniciamos el contenedor con
+
+	sudo docker restart [nombre_contenedor]
+
+#### Descargando Moodle
+
+Entramos en https://download.moodle.org/releases/supported/ . Dado que la imagen de SimpleSAMLPHP está basada en PHP 7.2, no podemos instalar la última versión, así que descargaremos la versión 3.10.5
+
+![](imagenes/Screenshot_2021-07-12 Other supported releases(1).png)
+
+Pulsamos en la versión .zip. 
+
+![](imagenes/Captura de pantalla de 2021-07-12 19-43-22.png)
+
+Para descargarla directamente desde el contenedor, hacemos clic derecho en "click here to download manually" y nos guardamos el enlace.
+
+Posteriormente, desde el contenedor, lo descargamos con wget
+
+	wget https://download.moodle.org/download.php/direct/stable310/moodle-3.10.5.zip
+
+
+	[root@f0a611e01fd2 www]# wget https://download.moodle.org/download.php/direct/stable310/moodle-3.10.5.zip
+	--2021-07-12 17:45:05--  https://download.moodle.org/download.php/direct/stable310/moodle-3.10.5.zip
+	Resolving download.moodle.org (download.moodle.org)... 104.22.64.81, 104.22.65.81, 172.67.26.233, ...
+	Connecting to download.moodle.org (download.moodle.org)|104.22.64.81|:443... connected.
+	HTTP request sent, awaiting response... 200 OK
+	Length: 74861778 (71M) [application/zip]
+	Saving to: 'moodle-3.10.5.zip'
+	
+	100%[======================================>] 74,861,778  3.16MB/s   in 26s    
+	
+	2021-07-12 17:45:32 (2.77 MB/s) - 'moodle-3.10.5.zip' saved [74861778/74861778]
+
+Para extraerlo, necesitamos instalar el paquete `unzip`. Lo instalamos con
+
+	yum install unzip
+
+Una vez instalado, nos situamos en el directorio http y extraemos el fichero 
+
+	[root@f0a611e01fd2 www]# cd html/
+	[root@f0a611e01fd2 html]# unzip ../moodle-3.10.5.zip 
+
+Una vez extraido, abrimos el navegador y entramos en la ruta
+
+https://localhost:8444/moodle (si estamos en la UPO)
+https://localhost:8446/moodle (si estamos en la UCA)
+
+Arrancará el instalador de Moodle. 
+
+![](imagenes/Screenshot_2021-07-12 Installation - Moodle 3 10 5 (Build 20210712).png)
+
+Seleccionamos el idioma del instalador (en mi caso, español)
+
+![](imagenes/Screenshot_2021-07-12 Instalación - Moodle 3 10 5 (Build 20210712).png)
+
+Nos preguntará sobre las rutas de instalación de Moodle. Comprobamos que están correctas
+
+![](imagenes/Screenshot_2021-07-12 Instalación - Moodle 3 10 5 (Build 20210712)(1).png)
+
+Nos preguntará sobre el motor de base de datos a utilizar. En nuestro caso, indicaremos MariaDB
+
+![](imagenes/Screenshot_2021-07-12 Instalación - Moodle 3 10 5 (Build 20210712)(2).png)
+
+Nos preguntará los parámetros de conexión a la base de datos. Como servidor de base de datos, indicamos el nombre del contenedor donde está alojada. El resto los rellenamos con los parámetros que indicamos en el Dockerfile
+
+![](imagenes/Screenshot_2021-07-12 Instalación - Moodle 3 10 5 (Build 20210712)(3).png)
+
+Comenzará la instalación. Nos aparece el aviso de licencia, donde se nos consulta si queremos continuar. Pulsamos en "Continuar" para empezar la instalación
+
+![](imagenes/Screenshot_2021-07-12 Instalación.png)
+
+El instalador realizará una comprobación de dependencias. Si las instalamos anteriormente, deberá aparecer todo con "OK". Pulsamos en "Continuar" para seguir la instalación
+
+![](imagenes/Screenshot_2021-07-12 Instalación - Moodle 3 10 5 (Build 20210712)(30).png)
+
+Comenzará la instalación de la plataforma y todos sus módulos
+
+![](imagenes/Screenshot_2021-07-12 Instalación - Moodle 3 10 5 (Build 20210712)(15).png)
+
+Una vez haya terminado, pulsamos en "Continuar"
+
+#### Configurando datos de la página
+
+##### Cuenta de administrador
+
+![](imagenes/Screenshot_2021-07-12 Instalación4.png)
+
+Se nos preguntarán los datos de la cuenta de administrador. Los rellenamos acorde a nuestra instalación
+
+![](imagenes/Screenshot_2021-07-12_Editar perfil(1).png)
+
+Pulsamos en "Actualizar información personal" para continuar
+
+##### Página principal
+
+Se nos preguntarán los datos de la página principal: el título de la página, la zona horaria y el correo 'no-reply'
+
+![](imagenes/Screenshot_2021-07-12 Instalación(1).png)
+
+![](imagenes/Screenshot_2021-07-12 Instalación(2).png)
+
+Los rellenamos y pulsamos "Guardar cambios". 
+
+#### Entrando en Moodle
+
+Y esto terminará la instalación
+
+![](imagenes/Screenshot_2021-07-12 Área personal.png)
+
+Repetimos el proceso con la otra universidad
+
 ### Configurando Moodle
 
-Arrancamos Moodle e iniciamos sesión
-
-![](imagenes/Screenshot_2021-07-10 Dashboard.png)
+Una vez con Moodle ya instalado, pasamos a configurar los datos de nuestra universidad 
 
 #### Creando las asignaturas
 
